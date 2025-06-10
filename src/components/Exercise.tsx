@@ -1,65 +1,76 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
-import { Exercise as ExerciseType } from '../types/routine';
-import DragHandle from './DragHandle';
+import { Exercise } from '../types/routine';
+import { Card, Flex } from '../styles/components/Layout.styles';
 
-const ExerciseContainer = styled.div`
-  background: white;
-  border: 1px solid #dfe1e6;
-  border-radius: 4px;
-  padding: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+const ExerciseCard = styled(Card)`
+  padding: ${({ theme }) => theme.spacing.sm};
+  margin: 0;
+  background: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  box-shadow: none;
+  transition: all ${({ theme }) => theme.transitions.fast};
 
   &:hover {
-    background-color: #f4f5f7;
-  }
-
-  &:active {
-    transform: scale(0.99);
-  }
-
-  @media (max-width: 767px) {
-    flex-wrap: wrap;
-    padding: 0.5rem;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: ${({ theme }) => theme.shadows.sm};
   }
 `;
 
-const ExerciseTitle = styled.h4`
-  font-size: 1rem;
-  color: #172b4d;
-  margin: 0;
-  flex-grow: 1;
-  min-width: 120px;
+const ExerciseName = styled.span`
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.typography.fontSizes.md};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
+`;
 
-  @media (max-width: 767px) {
-    width: 100%;
-    order: -1;
+const DragHandle = styled.div`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: ${({ theme }) => theme.colors.secondary};
+  opacity: 0.5;
+  transition: opacity ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:before {
+    content: "⋮⋮";
+    font-size: ${({ theme }) => theme.typography.fontSizes.lg};
+    line-height: 1;
   }
 `;
 
 interface ExerciseProps {
-  exercise: ExerciseType;
+  exercise: Exercise;
   index: number;
 }
 
-const Exercise: React.FC<ExerciseProps> = ({ exercise, index }) => {
+const ExerciseComponent: React.FC<ExerciseProps> = ({ exercise, index }) => {
   return (
     <Draggable draggableId={exercise.id} index={index}>
-      {(provided) => (
-        <ExerciseContainer
+      {(provided, snapshot) => (
+        <ExerciseCard
           ref={provided.innerRef}
           {...provided.draggableProps}
+          style={{
+            ...provided.draggableProps.style,
+            opacity: snapshot.isDragging ? 0.8 : 1
+          }}
         >
-          <DragHandle {...provided.dragHandleProps} />
-          <ExerciseTitle>{exercise.name}</ExerciseTitle>
-        </ExerciseContainer>
+          <Flex justify="space-between" align="center">
+            <ExerciseName>{exercise.name}</ExerciseName>
+            <DragHandle {...provided.dragHandleProps} />
+          </Flex>
+        </ExerciseCard>
       )}
     </Draggable>
   );
 };
 
-export default Exercise; 
+export default ExerciseComponent; 

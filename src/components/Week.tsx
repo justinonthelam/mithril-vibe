@@ -1,143 +1,169 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
-import { Week as WeekType } from '../types/routine';
-import Workout from './Workout';
-import DragHandle from './DragHandle';
+import { Week } from '../types/routine';
+import { Card, Flex } from '../styles/components/Layout.styles';
+import { WorkoutGrid, DragDropGrid } from '../styles/components/Grid.styles';
+import WorkoutComponent from './Workout';
 
-const WeekContainer = styled.div`
-  background: #f4f5f7;
-  border-radius: 8px;
-  padding: 1rem;
-  position: relative;
+const WeekCard = styled(Card)`
+  background: ${({ theme }) => theme.colors.background};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  transition: all ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: ${({ theme }) => theme.shadows.md};
+  }
 `;
 
 const WeekHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-
-  @media (min-width: 768px) {
-    flex-wrap: nowrap;
-  }
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.md};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  border-top-left-radius: ${({ theme }) => theme.borderRadius.md};
+  border-top-right-radius: ${({ theme }) => theme.borderRadius.md};
 `;
 
 const WeekTitle = styled.h2`
-  font-size: 1.25rem;
-  color: #172b4d;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.typography.fontSizes.lg};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   margin: 0;
-  flex-grow: 1;
-  min-width: 150px;
 `;
 
-const AddWorkoutButton = styled.button`
-  background-color: #0052cc;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  width: 100%;
-
-  @media (min-width: 768px) {
-    width: auto;
-  }
+const DragHandle = styled.div`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: ${({ theme }) => theme.colors.secondary};
+  opacity: 0.5;
+  transition: opacity ${({ theme }) => theme.transitions.fast};
 
   &:hover {
-    background-color: #0047b3;
+    opacity: 1;
   }
 
-  &:active {
-    transform: translateY(1px);
+  &:before {
+    content: "⋮⋮";
+    font-size: ${({ theme }) => theme.typography.fontSizes.lg};
+    line-height: 1;
   }
 `;
 
-const WorkoutList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-  min-height: 100px;
+const WorkoutContainer = styled.div`
+  padding: ${({ theme }) => theme.spacing.md};
   overflow-x: auto;
-  padding: 0.5rem;
-  margin: -0.5rem;
+  -webkit-overflow-scrolling: touch;
 
-  @media (min-width: 768px) {
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(280px, 1fr);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding: 1rem;
-    -webkit-overflow-scrolling: touch;
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
 
-    /* Hide scrollbar for Chrome, Safari and Opera */
-    &::-webkit-scrollbar {
-      height: 8px;
-    }
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.surface};
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+  }
 
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.secondary};
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+  }
 
-    &::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 4px;
-    }
+  /* Hide scrollbar for Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: ${({ theme }) => `${theme.colors.secondary} ${theme.colors.surface}`};
 
-    &::-webkit-scrollbar-thumb:hover {
-      background: #666;
-    }
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    padding: ${({ theme }) => theme.spacing.sm};
+  }
+`;
+
+const AddButton = styled.button`
+  background: transparent;
+  color: ${({ theme }) => theme.colors.primary};
+  border: 1px dashed ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.sm};
+  cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+  margin: ${({ theme }) => theme.spacing.md};
+  transition: all ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+    color: ${({ theme }) => theme.colors.success};
+    border-color: ${({ theme }) => theme.colors.success};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    margin: ${({ theme }) => theme.spacing.sm};
   }
 `;
 
 interface WeekProps {
-  week: WeekType;
+  week: Week;
   index: number;
-  onAddWorkout: (weekId: string) => void;
+  onAddWorkout: () => void;
   onAddExercise: (weekId: string, workoutId: string) => void;
 }
 
-const Week: React.FC<WeekProps> = ({ week, index, onAddWorkout, onAddExercise }) => {
+const WeekComponent: React.FC<WeekProps> = ({
+  week,
+  index,
+  onAddWorkout,
+  onAddExercise
+}) => {
   return (
     <Draggable draggableId={week.id} index={index}>
       {(provided) => (
-        <WeekContainer
+        <WeekCard
           ref={provided.innerRef}
           {...provided.draggableProps}
         >
-          <WeekHeader>
-            <DragHandle {...provided.dragHandleProps} />
-            <WeekTitle>{week.name}</WeekTitle>
-            <AddWorkoutButton onClick={() => onAddWorkout(week.id)}>
-              Add Workout
-            </AddWorkoutButton>
+          <WeekHeader {...provided.dragHandleProps}>
+            <Flex justify="space-between" align="center">
+              <WeekTitle>{week.name}</WeekTitle>
+              <DragHandle />
+            </Flex>
           </WeekHeader>
-          <Droppable droppableId={week.id} type="WORKOUT" direction="horizontal">
-            {(provided) => (
-              <WorkoutList
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-              >
-                {week.workouts.map((workout, index) => (
-                  <Workout
-                    key={workout.id}
-                    workout={workout}
-                    weekId={week.id}
-                    index={index}
-                    onAddExercise={onAddExercise}
-                  />
-                ))}
-                {provided.placeholder}
-              </WorkoutList>
-            )}
-          </Droppable>
-        </WeekContainer>
+          <WorkoutContainer>
+            <Droppable droppableId={week.id} type="WORKOUT" direction="horizontal">
+              {(provided, snapshot) => (
+                <DragDropGrid
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  isDraggingOver={snapshot.isDraggingOver}
+                >
+                  <WorkoutGrid>
+                    {week.workouts.map((workout, index) => (
+                      <WorkoutComponent
+                        key={workout.id}
+                        workout={workout}
+                        index={index}
+                        onAddExercise={() => onAddExercise(week.id, workout.id)}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </WorkoutGrid>
+                </DragDropGrid>
+              )}
+            </Droppable>
+          </WorkoutContainer>
+          <AddButton onClick={onAddWorkout}>
+            + Add Workout
+          </AddButton>
+        </WeekCard>
       )}
     </Draggable>
   );
 };
 
-export default Week; 
+export default WeekComponent; 

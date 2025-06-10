@@ -1,64 +1,97 @@
 import React from 'react';
 import styled from 'styled-components';
+import { SaveState } from '../types/routine';
 
-const SaveButtonContainer = styled.div`
-  position: relative;
-  display: inline-block;
-`;
-
-interface ButtonProps {
-  $hasUnsavedChanges: boolean;
-}
-
-const Button = styled.button<ButtonProps>`
-  background-color: ${props => props.$hasUnsavedChanges ? '#36b37e' : '#dfe1e6'};
-  color: ${props => props.$hasUnsavedChanges ? 'white' : '#42526e'};
+const Button = styled.button<{ isDirty: boolean }>`
+  background: ${({ theme, isDirty }) =>
+    isDirty ? theme.colors.primary : theme.colors.disabled};
+  color: ${({ theme }) => theme.colors.background};
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: ${props => props.$hasUnsavedChanges ? 'pointer' : 'default'};
-  font-size: 1rem;
-  transition: background-color 0.2s ease;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.lg}`};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
+  cursor: ${({ isDirty }) => (isDirty ? 'pointer' : 'default')};
+  transition: background-color ${({ theme }) => theme.transitions.fast};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 
   &:hover {
-    background-color: ${props => props.$hasUnsavedChanges ? '#2da066' : '#dfe1e6'};
+    background: ${({ theme, isDirty }) =>
+      isDirty ? theme.colors.success : theme.colors.disabled};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 `;
 
-interface SaveButtonProps {
-  hasUnsavedChanges: boolean;
-  onClick: () => void;
-  isSaving: boolean;
+const SaveStatus = styled.span`
+  color: ${({ theme }) => theme.colors.secondary};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+`;
+
+const ErrorMessage = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+`;
+
+const Container = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const ShortcutHint = styled.span`
+  color: ${({ theme }) => theme.colors.background};
+  opacity: 0.8;
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  padding-left: ${({ theme }) => theme.spacing.sm};
+  border-left: 1px solid ${({ theme }) => theme.colors.background};
+`;
+
+interface SaveButtonProps extends SaveState {
+  onSave: () => void;
 }
 
 const SaveButton: React.FC<SaveButtonProps> = ({
-  hasUnsavedChanges,
-  onClick,
-  isSaving
+  isDirty,
+  isSaving,
+  lastSaved,
+  error,
+  onSave
 }) => {
-  const handleClick = () => {
-    if (hasUnsavedChanges && !isSaving) {
-      onClick();
-    }
+  const formatLastSaved = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
+    }).format(date);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && hasUnsavedChanges && !isSaving) {
-      onClick();
-    }
-  };
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const shortcutKey = isMac ? '⌘' : 'Ctrl';
 
   return (
-    <SaveButtonContainer>
+    <Container>
+      {error ? (
+        <ErrorMessage>{error}</ErrorMessage>
+      ) : lastSaved ? (
+        <SaveStatus>Last saved at {formatLastSaved(lastSaved)}</SaveStatus>
+      ) : null}
       <Button
-        $hasUnsavedChanges={hasUnsavedChanges}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        disabled={!hasUnsavedChanges || isSaving}
+        onClick={onSave}
+        disabled={!isDirty || isSaving}
+        isDirty={isDirty}
+        title={!isDirty ? 'No changes to save' : `${shortcutKey}+Enter to save`}
       >
-        {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Save Changes' : 'Saved'}
+        <span>{isSaving ? 'Saving...' : 'Save'}</span>
+        {isDirty && !isSaving && (
+          <ShortcutHint>{shortcutKey}+↵</ShortcutHint>
+        )}
       </Button>
-    </SaveButtonContainer>
+    </Container>
   );
 };
 

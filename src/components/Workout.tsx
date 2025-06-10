@@ -1,131 +1,111 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
-import { Workout as WorkoutType } from '../types/routine';
-import Exercise from './Exercise';
-import DragHandle from './DragHandle';
+import { Workout } from '../types/routine';
+import { Card, Flex } from '../styles/components/Layout.styles';
+import { ExerciseGrid, DragDropGrid } from '../styles/components/Grid.styles';
 
-const WorkoutContainer = styled.div`
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
+const WorkoutCard = styled(Card)`
   width: 100%;
-  min-width: 280px;
-  max-width: 400px;
-  margin: 0 auto;
+  height: 100%;
   scroll-snap-align: start;
-
-  @media (min-width: 768px) {
-    margin: 0;
-  }
 `;
 
 const WorkoutHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-
-  @media (min-width: 768px) {
-    flex-wrap: nowrap;
-  }
+  margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
 const WorkoutTitle = styled.h3`
-  font-size: 1.125rem;
-  color: #172b4d;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: ${({ theme }) => theme.typography.fontSizes.md};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   margin: 0;
-  flex-grow: 1;
-  min-width: 120px;
 `;
 
-const AddExerciseButton = styled.button`
-  background-color: #0052cc;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  width: 100%;
-
-  @media (min-width: 768px) {
-    width: auto;
-  }
+const DragHandle = styled.div`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: ${({ theme }) => theme.colors.secondary};
+  opacity: 0.5;
+  transition: opacity ${({ theme }) => theme.transitions.fast};
 
   &:hover {
-    background-color: #0047b3;
+    opacity: 1;
   }
 
-  &:active {
-    transform: translateY(1px);
+  &:before {
+    content: "⋮⋮";
+    font-size: ${({ theme }) => theme.typography.fontSizes.lg};
+    line-height: 1;
   }
 `;
 
-const ExerciseList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-height: 50px;
-  padding: 0.5rem;
-  margin: -0.5rem;
-  border-radius: 4px;
+const AddButton = styled.button`
+  background: transparent;
+  color: ${({ theme }) => theme.colors.primary};
+  border: 1px dashed ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.sm};
+  cursor: pointer;
+  width: 100%;
+  transition: all ${({ theme }) => theme.transitions.fast};
 
-  &:empty {
-    background-color: #f4f5f7;
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+    color: ${({ theme }) => theme.colors.success};
+    border-color: ${({ theme }) => theme.colors.success};
   }
 `;
 
 interface WorkoutProps {
-  workout: WorkoutType;
-  weekId: string;
+  workout: Workout;
   index: number;
-  onAddExercise: (weekId: string, workoutId: string) => void;
+  onAddExercise: () => void;
 }
 
-const Workout: React.FC<WorkoutProps> = ({
+const WorkoutComponent: React.FC<WorkoutProps> = ({
   workout,
-  weekId,
   index,
   onAddExercise
 }) => {
   return (
     <Draggable draggableId={workout.id} index={index}>
       {(provided) => (
-        <WorkoutContainer
+        <WorkoutCard
           ref={provided.innerRef}
           {...provided.draggableProps}
         >
           <WorkoutHeader>
-            <DragHandle {...provided.dragHandleProps} />
-            <WorkoutTitle>{workout.name}</WorkoutTitle>
-            <AddExerciseButton onClick={() => onAddExercise(weekId, workout.id)}>
-              Add Exercise
-            </AddExerciseButton>
+            <Flex justify="space-between" align="center">
+              <WorkoutTitle>{workout.name}</WorkoutTitle>
+              <DragHandle {...provided.dragHandleProps} />
+            </Flex>
           </WorkoutHeader>
-          <Droppable droppableId={`${weekId}-${workout.id}`} type="EXERCISE">
-            {(provided) => (
-              <ExerciseList
+          <Droppable droppableId={workout.id} type="EXERCISE">
+            {(provided, snapshot) => (
+              <DragDropGrid
                 ref={provided.innerRef}
                 {...provided.droppableProps}
+                isDraggingOver={snapshot.isDraggingOver}
               >
-                {workout.exercises.map((exercise, index) => (
-                  <Exercise
-                    key={exercise.id}
-                    exercise={exercise}
-                    index={index}
-                  />
-                ))}
-                {provided.placeholder}
-              </ExerciseList>
+                <ExerciseGrid>
+                  {/* Exercise components will be rendered here */}
+                  {provided.placeholder}
+                </ExerciseGrid>
+                <AddButton onClick={onAddExercise}>
+                  + Add Exercise
+                </AddButton>
+              </DragDropGrid>
             )}
           </Droppable>
-        </WorkoutContainer>
+        </WorkoutCard>
       )}
     </Draggable>
   );
 };
 
-export default Workout; 
+export default WorkoutComponent; 

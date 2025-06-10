@@ -14,24 +14,24 @@
 
 ## Tasks
 
-- [ ] 1.0 Base Component Structure
-  - [ ] 1.1 Create base styled components for layout containers
-  - [ ] 1.2 Implement responsive grid system using CSS Grid
-  - [ ] 1.3 Add basic theme variables for spacing and breakpoints
-  - [ ] 1.4 Create reusable card component for workouts and exercises
+- [x] 1.0 Base Component Structure
+  - [x] 1.1 Create base styled components for layout containers
+  - [x] 1.2 Implement responsive grid system using CSS Grid
+  - [x] 1.3 Add basic theme variables for spacing and breakpoints
+  - [x] 1.4 Create reusable card component for workouts and exercises
 
-- [ ] 2.0 Routine Header Implementation
-  - [ ] 2.1 Create routine title component with editable functionality
-  - [ ] 2.2 Add save button with loading and success states
-  - [ ] 2.3 Implement keyboard shortcut (Enter) for saving
-  - [ ] 2.4 Add unsaved changes indicator
+- [x] 2.0 Routine Header Implementation
+  - [x] 2.1 Create routine title component with editable functionality
+  - [x] 2.2 Add save button with loading and success states
+  - [x] 2.3 Implement keyboard shortcut (Enter) for saving
+  - [x] 2.4 Add unsaved changes indicator
 
-- [ ] 3.0 Week Component
-  - [ ] 3.1 Create week container with horizontal layout
-  - [ ] 3.2 Add "Add Week" button with proper positioning
-  - [ ] 3.3 Implement week header with drag handle
-  - [ ] 3.4 Style week container for visual differentiation
-  - [ ] 3.5 Add responsive behavior for mobile view
+- [x] 3.0 Week Component
+  - [x] 3.1 Create week container with horizontal layout
+  - [x] 3.2 Add "Add Week" button with proper positioning
+  - [x] 3.3 Implement week header with drag handle
+  - [x] 3.4 Style week container for visual differentiation
+  - [x] 3.5 Add responsive behavior for mobile view
 
 - [ ] 4.0 Workout Component
   - [ ] 4.1 Create workout card component with vertical layout
