@@ -33,28 +33,28 @@
   - [x] 3.4 Style week container for visual differentiation
   - [x] 3.5 Add responsive behavior for mobile view
 
-- [ ] 4.0 Workout Component
-  - [ ] 4.1 Create workout card component with vertical layout
-  - [ ] 4.2 Add workout header with drag handle
-  - [ ] 4.3 Implement "Add Workout" button within week
-  - [ ] 4.4 Add workout title with editable functionality
-  - [ ] 4.5 Style workout cards with proper spacing and shadows
-  - [ ] 4.6 Implement horizontal scrolling for mobile view
+- [x] 4.0 Workout Component
+  - [x] 4.1 Create workout card component with vertical layout
+  - [x] 4.2 Add workout header with drag handle
+  - [x] 4.3 Implement "Add Workout" button within week
+  - [x] 4.4 Add workout title with editable functionality
+  - [x] 4.5 Style workout cards with proper spacing and shadows
+  - [x] 4.6 Implement horizontal scrolling for mobile view
 
-- [ ] 5.0 Exercise Component
-  - [ ] 5.1 Create exercise item component
-  - [ ] 5.2 Add drag handle for exercises
-  - [ ] 5.3 Implement "Add Exercise" button within workout
-  - [ ] 5.4 Style exercise items with proper spacing
-  - [ ] 5.5 Add hover and active states for better UX
+- [x] 5.0 Exercise Component
+  - [x] 5.1 Create exercise item component
+  - [x] 5.2 Add drag handle for exercises
+  - [x] 5.3 Implement "Add Exercise" button within workout
+  - [x] 5.4 Style exercise items with proper spacing
+  - [x] 5.5 Add hover and active states for better UX
 
-- [ ] 6.0 Drag and Drop Styling
-  - [ ] 6.1 Create drag preview components for weeks
-  - [ ] 6.2 Create drag preview components for workouts
-  - [ ] 6.3 Create drag preview components for exercises
-  - [ ] 6.4 Add drop zone indicators and animations
-  - [ ] 6.5 Implement touch-friendly drag handles
-  - [ ] 6.6 Add drag and drop visual feedback
+- [x] 6.0 Drag and Drop Styling
+  - [x] 6.1 Create drag preview components for weeks
+  - [x] 6.2 Create drag preview components for workouts
+  - [x] 6.3 Create drag preview components for exercises
+  - [x] 6.4 Add drop zone indicators and animations
+  - [x] 6.5 Implement touch-friendly drag handles
+  - [x] 6.6 Add drag and drop visual feedback
 
 - [ ] 7.0 Mobile Optimization
   - [ ] 7.1 Implement collapsible weeks for better space management

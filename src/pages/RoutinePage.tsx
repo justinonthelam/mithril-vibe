@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Container } from '../styles/components/Layout.styles';
 import { Routine as RoutineType } from '../types/routine';
 import { useSaveState } from '../hooks/useSaveState';
 import RoutineComponent from '../components/Routine';
 
-const RoutinePage: React.FC = () => {
-  const [routine, setRoutine] = useState<RoutineType>({
-    id: '1',
-    name: 'My Workout Routine',
-    weeks: []
-  });
+interface RoutinePageProps {
+  routine: RoutineType;
+  onRoutineChange: (routine: RoutineType) => void;
+}
 
+const RoutinePage: React.FC<RoutinePageProps> = ({ routine, onRoutineChange }) => {
   const { isDirty, isSaving, lastSaved, error, saveRoutine } = useSaveState({
     routine,
-    onRoutineChange: setRoutine
+    onRoutineChange
   });
 
   const handleAddWorkout = (weekId: string) => {
@@ -26,7 +25,7 @@ const RoutinePage: React.FC = () => {
         exercises: [],
         order: week.workouts.length
       });
-      setRoutine(updatedRoutine);
+      onRoutineChange(updatedRoutine);
     }
   };
 
@@ -40,7 +39,7 @@ const RoutinePage: React.FC = () => {
         name: `Exercise ${workout.exercises.length + 1}`,
         order: workout.exercises.length
       });
-      setRoutine(updatedRoutine);
+      onRoutineChange(updatedRoutine);
     }
   };
 
@@ -48,7 +47,7 @@ const RoutinePage: React.FC = () => {
     <Container>
       <RoutineComponent
         routine={routine}
-        onRoutineChange={setRoutine}
+        onRoutineChange={onRoutineChange}
         isDirty={isDirty}
         isSaving={isSaving}
         lastSaved={lastSaved}

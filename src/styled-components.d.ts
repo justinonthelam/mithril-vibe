@@ -80,6 +80,7 @@ declare module 'styled-components' {
       sticky: number;
       modal: number;
       tooltip: number;
+      dragPreview: number;
     };
   }
 } 

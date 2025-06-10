@@ -1,10 +1,29 @@
 import styled from 'styled-components';
 
+export const Grid = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+export const WeekContainer = styled.div`
+  background: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  transition: all ${({ theme }) => theme.transitions.fast};
+  width: 100%;
+  min-height: 250px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: ${({ theme }) => theme.shadows.md};
+  }
+`;
+
 export const WeekGrid = styled.div`
   display: grid;
   gap: ${({ theme }) => theme.spacing.lg};
   width: 100%;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 
 export const WorkoutGrid = styled.div`
@@ -16,6 +35,7 @@ export const WorkoutGrid = styled.div`
   padding: ${({ theme }) => theme.spacing.md};
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
 
   &::-webkit-scrollbar {
     height: 8px;
@@ -40,14 +60,13 @@ export const WorkoutGrid = styled.div`
 export const ExerciseGrid = styled.div`
   display: grid;
   gap: ${({ theme }) => theme.spacing.sm};
-  margin-top: ${({ theme }) => theme.spacing.md};
+  width: 100%;
 `;
 
-export const DragDropGrid = styled.div<{ isDraggingOver?: boolean }>`
+export const DragDropGrid = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.md};
+  width: 100%;
   min-height: 100px;
-  background: ${({ theme, isDraggingOver }) =>
-    isDraggingOver ? theme.colors.surface : 'transparent'};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  transition: background-color ${({ theme }) => theme.transitions.fast};
-  padding: ${({ theme }) => theme.spacing.sm};
+  pointer-events: auto;
 `; 
