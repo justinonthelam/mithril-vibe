@@ -16,13 +16,13 @@ const theme: DefaultTheme = {
   typography: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     fontSizes: {
-      xs: '0.75rem',
-      sm: '0.875rem',
-      md: '1rem',
-      lg: '1.125rem',
-      xl: '1.25rem',
-      '2xl': '1.5rem',
-      '3xl': '1.875rem',
+      xs: 'clamp(0.75rem, 2vw, 0.875rem)',
+      sm: 'clamp(0.875rem, 2vw, 1rem)',
+      md: 'clamp(1rem, 2.5vw, 1.125rem)',
+      lg: 'clamp(1.125rem, 3vw, 1.25rem)',
+      xl: 'clamp(1.25rem, 3.5vw, 1.5rem)',
+      '2xl': 'clamp(1.5rem, 4vw, 1.875rem)',
+      '3xl': 'clamp(1.875rem, 5vw, 2.25rem)',
     },
     fontWeights: {
       normal: 400,
@@ -80,6 +80,11 @@ const theme: DefaultTheme = {
     modal: 1300,
     tooltip: 1400,
     dragPreview: 1500,
+  },
+  touchTargets: {
+    min: '44px', // Minimum size for touch targets
+    icon: '32px', // Size for icon buttons
+    button: '48px', // Size for primary buttons
   },
 };
 

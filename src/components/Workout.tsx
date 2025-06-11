@@ -143,14 +143,21 @@ const WorkoutComponent: React.FC<WorkoutProps> = ({
     }
   };
 
+  const handleAddExercise = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddExercise();
+  };
+
   return (
     <Draggable draggableId={workout.id} index={index}>
       {(provided, snapshot) => (
         <WorkoutCard
           ref={provided.innerRef}
           {...provided.draggableProps}
+          {...provided.dragHandleProps}
         >
-          <WorkoutHeader {...provided.dragHandleProps}>
+          <WorkoutHeader>
             <Flex justify="space-between" align="center" gap="sm">
               {isEditing ? (
                 <WorkoutTitleInput
@@ -196,7 +203,7 @@ const WorkoutComponent: React.FC<WorkoutProps> = ({
                 </DropZonePreview>
               )}
             </Droppable>
-            <AddButton onClick={onAddExercise}>
+            <AddButton onClick={handleAddExercise}>
               + Add Exercise
             </AddButton>
           </ExercisesContainer>

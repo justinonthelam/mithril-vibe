@@ -56,22 +56,22 @@
   - [x] 6.5 Implement touch-friendly drag handles
   - [x] 6.6 Add drag and drop visual feedback
 
-- [ ] 7.0 Mobile Optimization
-  - [ ] 7.1 Implement collapsible weeks for better space management
-  - [ ] 7.2 Add horizontal scroll indicators for workouts
-  - [ ] 7.3 Optimize touch targets for mobile use
-  - [ ] 7.4 Add mobile-specific drag and drop interactions
-  - [ ] 7.5 Implement responsive typography
-  - [ ] 7.6 Test and optimize touch gestures
+- [x] 7.0 Mobile Optimization
+  - [x] 7.1 Implement collapsible weeks for better space management
+  - [x] 7.2 Add horizontal scroll indicators for workouts
+  - [x] 7.3 Optimize touch targets for mobile use
+  - [x] 7.4 Add mobile-specific drag and drop interactions
+  - [x] 7.5 Implement responsive typography
+  - [x] 7.6 Test and optimize touch gestures
 
-- [ ] 8.0 Visual Feedback and Polish
-  - [ ] 8.1 Add loading states for save operations
-  - [ ] 8.2 Implement success/error notifications
-  - [ ] 8.3 Add transitions for component interactions
-  - [ ] 8.4 Implement hover states and animations
-  - [ ] 8.5 Add empty state designs
-  - [ ] 8.6 Polish spacing and alignment
-  - [ ] 8.7 Ensure consistent styling across all components
+- [x] 8.0 Visual Feedback and Polish
+  - [x] 8.1 Add loading states for save operations
+  - [x] 8.2 Implement success/error notifications
+  - [x] 8.3 Add transitions for component interactions
+  - [x] 8.4 Implement hover states and animations
+  - [x] 8.5 Add empty state designs
+  - [x] 8.6 Polish spacing and alignment
+  - [x] 8.7 Ensure consistent styling across all components
 
 ## Notes
 

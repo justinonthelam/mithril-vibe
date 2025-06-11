@@ -82,5 +82,10 @@ declare module 'styled-components' {
       tooltip: number;
       dragPreview: number;
     };
+    touchTargets: {
+      min: string;
+      icon: string;
+      button: string;
+    };
   }
 } 

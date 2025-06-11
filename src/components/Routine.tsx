@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Droppable } from 'react-beautiful-dnd';
-import { Routine } from '../types/routine';
+import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import type { Routine as RoutineType } from '../types/routine';
 import { Section, Flex } from '../styles/components/Layout.styles';
 import { WeekGrid } from '../styles/components/Grid.styles';
 import WeekComponent from './Week';
@@ -44,13 +44,13 @@ const WeekList = styled.div`
 `;
 
 const Header = styled.header`
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 
 const Title = styled.h1`
-  color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.typography.fontSizes.xl};
+  font-size: ${({ theme }) => theme.typography.fontSizes['2xl']};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
 
@@ -76,118 +76,168 @@ const WeeksDroppable = styled(WeekGrid)<{ isDraggingOver: boolean }>`
 const AddWeekButton = styled.button`
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.primary};
-  border: 2px dashed ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 2px dashed ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ theme }) => theme.spacing.lg};
-  cursor: pointer;
   width: 100%;
-  margin-top: ${({ theme }) => theme.spacing.lg};
+  cursor: pointer;
+  transition: all ${({ theme }) => theme.transitions.fast};
   font-size: ${({ theme }) => theme.typography.fontSizes.md};
   font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
-  transition: all ${({ theme }) => theme.transitions.fast};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.background};
-    color: ${({ theme }) => theme.colors.success};
-    border-color: ${({ theme }) => theme.colors.success};
+    background: ${({ theme }) => theme.colors.hover};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
 interface RoutineProps {
-  routine: Routine;
-  onRoutineChange: (routine: Routine) => void;
-  isDirty: boolean;
-  isSaving: boolean;
-  lastSaved: Date | null;
-  error: string | null;
-  onSave: () => void;
+  routine: RoutineType;
+  onRoutineChange: (routine: RoutineType) => void;
+  onSave: (routine: RoutineType) => Promise<void>;
   onAddWorkout: (weekId: string) => void;
   onAddExercise: (weekId: string, workoutId: string) => void;
 }
 
-const RoutineComponent: React.FC<RoutineProps> = ({
+const Routine: React.FC<RoutineProps> = ({
   routine,
   onRoutineChange,
-  isDirty,
-  isSaving,
-  lastSaved,
-  error,
   onSave,
   onAddWorkout,
   onAddExercise
 }) => {
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | undefined>(undefined);
+
   const handleTitleChange = (newTitle: string) => {
     onRoutineChange({
       ...routine,
       name: newTitle
     });
+    setIsDirty(true);
   };
 
-  const handleAddWeek = () => {
-    onRoutineChange({
-      ...routine,
-      weeks: [
-        ...routine.weeks,
-        {
-          id: `week-${Date.now()}`,
-          name: `Week ${routine.weeks.length + 1}`,
-          workouts: [],
-          order: routine.weeks.length
-        }
-      ]
-    });
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, type } = result;
+
+    // Don't do anything if dropped in the same position
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+
+    const updatedRoutine = structuredClone(routine);
+
+    // Different logic based on what's being dragged
+    switch (type) {
+      case 'WEEK':
+        const newWeeks = Array.from(routine.weeks);
+        const [movedWeek] = newWeeks.splice(source.index, 1);
+        newWeeks.splice(destination.index, 0, movedWeek);
+        updatedRoutine.weeks = newWeeks;
+        break;
+
+      case 'WORKOUT':
+        const sourceWeek = updatedRoutine.weeks.find(w => w.id === source.droppableId);
+        const destWeek = updatedRoutine.weeks.find(w => w.id === destination.droppableId);
+        
+        if (!sourceWeek || !destWeek) return;
+
+        const [movedWorkout] = sourceWeek.workouts.splice(source.index, 1);
+        destWeek.workouts.splice(destination.index, 0, movedWorkout);
+        break;
+
+      case 'EXERCISE':
+        // Find the source and destination workouts
+        const sourceWorkoutWeek = updatedRoutine.weeks.find(week => 
+          week.workouts.some(workout => workout.id === source.droppableId)
+        );
+        const destWorkoutWeek = updatedRoutine.weeks.find(week => 
+          week.workouts.some(workout => workout.id === destination.droppableId)
+        );
+
+        if (!sourceWorkoutWeek || !destWorkoutWeek) return;
+
+        const sourceWorkout = sourceWorkoutWeek.workouts.find(w => w.id === source.droppableId);
+        const destWorkout = destWorkoutWeek.workouts.find(w => w.id === destination.droppableId);
+
+        if (!sourceWorkout || !destWorkout) return;
+
+        // Move the exercise
+        const [movedExercise] = sourceWorkout.exercises.splice(source.index, 1);
+        destWorkout.exercises.splice(destination.index, 0, movedExercise);
+        break;
+    }
+    
+    setIsDirty(true);
+    onRoutineChange(updatedRoutine);
   };
 
-  const formatLastSaved = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric'
-    }).format(date);
+  const handleSave = async () => {
+    if (!isDirty || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onSave(routine);
+      setIsDirty(false);
+      setNotification({
+        type: 'success',
+        message: 'Changes saved successfully'
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+      setNotification({
+        type: 'error',
+        message: errorMessage
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <Section>
-      <Header>
-        <Flex justify="space-between" align="center">
-          <EditableTitle
-            value={routine.name}
-            onChange={handleTitleChange}
-          />
-          <SaveButton
-            isDirty={isDirty}
-            isSaving={isSaving}
-            lastSaved={lastSaved}
-            error={error}
-            onSave={onSave}
-          />
-        </Flex>
-      </Header>
-      <Droppable droppableId="weeks" type="WEEK">
-        {(provided, snapshot) => (
-          <WeeksDroppable
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            isDraggingOver={snapshot.isDraggingOver}
-          >
-            {routine.weeks.map((week, index) => (
-              <WeekComponent
-                key={week.id}
-                week={week}
-                index={index}
-                onAddWorkout={() => onAddWorkout(week.id)}
-                onAddExercise={onAddExercise}
-              />
-            ))}
-            {provided.placeholder}
-          </WeeksDroppable>
-        )}
-      </Droppable>
-      <AddWeekButton onClick={handleAddWeek}>
-        + Add Week
-      </AddWeekButton>
-    </Section>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <Section>
+        <Header>
+          <Flex justify="space-between" align="center">
+            <Title>{routine.name}</Title>
+            <SaveButton
+              hasChanges={isDirty}
+              isSaving={isSaving}
+              onSave={handleSave}
+              notification={notification}
+            />
+          </Flex>
+        </Header>
+
+        <Droppable droppableId="weeks" type="WEEK">
+          {(provided, snapshot) => (
+            <div ref={provided.innerRef} {...provided.droppableProps}>
+              {routine.weeks.map((week, index) => (
+                <WeekComponent
+                  key={week.id}
+                  week={week}
+                  index={index}
+                  onAddWorkout={() => onAddWorkout(week.id)}
+                  onAddExercise={(workoutId) => onAddExercise(week.id, workoutId)}
+                />
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+
+        <AddWeekButton onClick={() => onAddWorkout('new')}>
+          + Add Week
+        </AddWeekButton>
+      </Section>
+    </DragDropContext>
   );
 };
 
-export default RoutineComponent; 
+export default Routine; 

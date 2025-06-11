@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
-import { Week } from '../types/routine';
+import type { Week } from '../types/routine';
 import { Card, Flex } from '../styles/components/Layout.styles';
 import { WorkoutGrid, DragDropGrid, WeekContainer } from '../styles/components/Grid.styles';
 import WorkoutComponent from './Workout';
@@ -26,6 +26,12 @@ const WeekHeader = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border-top-left-radius: ${({ theme }) => theme.borderRadius.md};
   border-top-right-radius: ${({ theme }) => theme.borderRadius.md};
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.hover};
+  }
 `;
 
 const WeekTitle = styled.h2`
@@ -57,11 +63,48 @@ const DragHandle = styled.div`
   }
 `;
 
-const WeekContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
+const WeekContent = styled.div<{ isCollapsed: boolean }>`
+  display: ${({ isCollapsed }) => isCollapsed ? 'none' : 'block'};
   padding: ${({ theme }) => theme.spacing.md};
+`;
+
+const ScrollIndicator = styled.div<{ show: boolean; direction: 'left' | 'right' }>`
+  position: absolute;
+  top: 50%;
+  ${({ direction }) => direction === 'left' ? 'left: 0;' : 'right: 0;'}
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: ${({ theme }) => theme.colors.background};
+  border-radius: ${({ theme }) => theme.borderRadius.circle};
+  box-shadow: ${({ theme }) => theme.shadows.md};
+  display: ${({ show }) => show ? 'flex' : 'none'};
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.primary};
+  cursor: pointer;
+  z-index: ${({ theme }) => theme.zIndices.sticky};
+  opacity: 0.8;
+  transition: opacity ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &::before {
+    content: "${({ direction }) => direction === 'left' ? '←' : '→'}";
+    font-size: ${({ theme }) => theme.typography.fontSizes.xl};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    width: 24px;
+    height: 24px;
+  }
+`;
+
+const WorkoutListContainer = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
 const WorkoutList = styled.div`
@@ -74,7 +117,7 @@ const WorkoutList = styled.div`
   min-height: 200px;
   align-items: flex-start;
   position: relative;
-  pointer-events: auto;
+  scroll-behavior: smooth;
 
   &::-webkit-scrollbar {
     height: 6px;
@@ -91,37 +134,34 @@ const WorkoutList = styled.div`
   }
 `;
 
-const AddButton = styled.button.attrs({ type: 'button' })`
-  background: transparent;
-  color: ${({ theme }) => theme.colors.primary};
-  border: 2px dashed ${({ theme }) => theme.colors.primary};
+const CollapseIndicator = styled.span<{ isCollapsed: boolean }>`
+  margin-left: ${({ theme }) => theme.spacing.sm};
+  transition: transform ${({ theme }) => theme.transitions.fast};
+  transform: rotate(${({ isCollapsed }) => isCollapsed ? '180deg' : '0deg'});
+  display: inline-block;
+  
+  &::before {
+    content: "▼";
+    font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  }
+`;
+
+const AddButton = styled.button`
+  min-width: 300px;
+  height: 200px;
+  padding: ${({ theme }) => theme.spacing.lg};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 2px dashed ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  padding: ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.colors.primary};
   cursor: pointer;
-  min-width: 200px;
-  height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
   transition: all ${({ theme }) => theme.transitions.fast};
-  scroll-snap-align: start;
-  flex-shrink: 0;
-  align-self: stretch;
-  position: relative;
-  z-index: 10;
-  pointer-events: auto;
+  font-size: ${({ theme }) => theme.typography.fontSizes.md};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.surface};
-    color: ${({ theme }) => theme.colors.success};
-    border-color: ${({ theme }) => theme.colors.success};
-  }
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.success};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.success}40;
+    background: ${({ theme }) => theme.colors.hover};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -129,7 +169,7 @@ interface WeekProps {
   week: Week;
   index: number;
   onAddWorkout: () => void;
-  onAddExercise: (weekId: string, workoutId: string) => void;
+  onAddExercise: (workoutId: string) => void;
 }
 
 const WeekComponent: React.FC<WeekProps> = ({
@@ -138,10 +178,11 @@ const WeekComponent: React.FC<WeekProps> = ({
   onAddWorkout,
   onAddExercise
 }) => {
-  const handleAddWorkout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAddWorkout();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const workoutListRef = React.useRef<HTMLDivElement>(null);
+
+  const handleAddExercise = (workoutId: string) => {
+    onAddExercise(workoutId);
   };
 
   return (
@@ -151,21 +192,28 @@ const WeekComponent: React.FC<WeekProps> = ({
           ref={provided.innerRef}
           {...provided.draggableProps}
         >
-          <WeekHeader {...provided.dragHandleProps}>
+          <WeekHeader 
+            {...provided.dragHandleProps}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
             <Flex justify="space-between" align="center">
-              <WeekTitle>{week.name}</WeekTitle>
-              <DragHandle />
+              <Flex align="center">
+                <WeekTitle>{week.name}</WeekTitle>
+                <CollapseIndicator isCollapsed={isCollapsed} />
+              </Flex>
             </Flex>
           </WeekHeader>
-          <WeekContent>
+
+          <WeekContent isCollapsed={isCollapsed}>
             <Droppable droppableId={week.id} type="WORKOUT" direction="horizontal">
               {(provided, snapshot) => (
-                <DropZonePreview
-                  isOver={snapshot.isDraggingOver}
-                  isValid={!snapshot.draggingFromThisWith}
-                >
+                <WorkoutListContainer>
                   <WorkoutList
-                    ref={provided.innerRef}
+                    ref={(el) => {
+                      provided.innerRef(el);
+                      // @ts-ignore - we know this is an HTMLDivElement
+                      workoutListRef.current = el;
+                    }}
                     {...provided.droppableProps}
                   >
                     {week.workouts.map((workout, index) => (
@@ -173,15 +221,15 @@ const WeekComponent: React.FC<WeekProps> = ({
                         key={workout.id}
                         workout={workout}
                         index={index}
-                        onAddExercise={() => onAddExercise(week.id, workout.id)}
+                        onAddExercise={() => handleAddExercise(workout.id)}
                       />
                     ))}
                     {provided.placeholder}
-                    <AddButton type="button" onClick={handleAddWorkout}>
+                    <AddButton onClick={onAddWorkout}>
                       + Add Workout
                     </AddButton>
                   </WorkoutList>
-                </DropZonePreview>
+                </WorkoutListContainer>
               )}
             </Droppable>
           </WeekContent>
