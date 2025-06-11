@@ -34,11 +34,41 @@ const WeekHeader = styled.div`
   }
 `;
 
-const WeekTitle = styled.h2`
+const WeekTitleInput = styled.input`
+  font-size: ${({ theme }) => theme.typography.fontSizes.lg};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.text};
+  background: transparent;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.xs};
+  margin: -${({ theme }) => theme.spacing.xs};
+  width: 100%;
+  max-width: 300px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.hover};
+  }
+
+  &:focus {
+    background: ${({ theme }) => theme.colors.surface};
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const WeekTitle = styled.div`
   color: ${({ theme }) => theme.colors.text};
   font-size: ${({ theme }) => theme.typography.fontSizes.lg};
   font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
   margin: 0;
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing.xs};
+  margin: -${({ theme }) => theme.spacing.xs};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.hover};
+  }
 `;
 
 const DragHandle = styled.div`
@@ -168,6 +198,7 @@ const AddButton = styled.button`
 interface WeekProps {
   week: Week;
   index: number;
+  onWeekChange: (updatedWeek: Week) => void;
   onAddWorkout: () => void;
   onAddExercise: (workoutId: string) => void;
 }
@@ -175,14 +206,29 @@ interface WeekProps {
 const WeekComponent: React.FC<WeekProps> = ({
   week,
   index,
+  onWeekChange,
   onAddWorkout,
   onAddExercise
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const workoutListRef = React.useRef<HTMLDivElement>(null);
 
-  const handleAddExercise = (workoutId: string) => {
-    onAddExercise(workoutId);
+  const handleTitleChange = (newTitle: string) => {
+    onWeekChange({ ...week, name: newTitle });
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    // Only toggle collapse if we're not clicking on the title input
+    if (!(e.target as HTMLElement).closest('.week-title')) {
+      setIsCollapsed(!isCollapsed);
+    }
   };
 
   return (
@@ -194,11 +240,26 @@ const WeekComponent: React.FC<WeekProps> = ({
         >
           <WeekHeader 
             {...provided.dragHandleProps}
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={handleHeaderClick}
           >
             <Flex justify="space-between" align="center">
-              <Flex align="center">
-                <WeekTitle>{week.name}</WeekTitle>
+              <Flex align="center" className="week-title">
+                {isEditingTitle ? (
+                  <WeekTitleInput
+                    value={week.name}
+                    onChange={(e) => handleTitleChange(e.target.value)}
+                    onBlur={() => setIsEditingTitle(false)}
+                    onKeyDown={handleTitleKeyDown}
+                    autoFocus
+                  />
+                ) : (
+                  <WeekTitle onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingTitle(true);
+                  }}>
+                    {week.name}
+                  </WeekTitle>
+                )}
                 <CollapseIndicator isCollapsed={isCollapsed} />
               </Flex>
             </Flex>
@@ -221,7 +282,12 @@ const WeekComponent: React.FC<WeekProps> = ({
                         key={workout.id}
                         workout={workout}
                         index={index}
-                        onAddExercise={() => handleAddExercise(workout.id)}
+                        onWorkoutChange={(updatedWorkout) => {
+                          const updatedWeek = { ...week };
+                          updatedWeek.workouts[index] = updatedWorkout;
+                          onWeekChange(updatedWeek);
+                        }}
+                        onAddExercise={() => onAddExercise(workout.id)}
                       />
                     ))}
                     {provided.placeholder}

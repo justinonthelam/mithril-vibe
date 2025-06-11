@@ -47,11 +47,37 @@ const Header = styled.header`
   margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 
-const Title = styled.h1`
+const TitleInput = styled.input`
   font-size: ${({ theme }) => theme.typography.fontSizes['2xl']};
   font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
   color: ${({ theme }) => theme.colors.text};
-  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.xs};
+  margin: -${({ theme }) => theme.spacing.xs};
+  width: 100%;
+  max-width: 500px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.hover};
+  }
+
+  &:focus {
+    background: ${({ theme }) => theme.colors.surface};
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const Title = styled.div`
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing.xs};
+  margin: -${({ theme }) => theme.spacing.xs};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.hover};
+  }
 `;
 
 const SaveStatus = styled.span`
@@ -108,14 +134,21 @@ const Routine: React.FC<RoutineProps> = ({
 }) => {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | undefined>(undefined);
 
   const handleTitleChange = (newTitle: string) => {
-    onRoutineChange({
-      ...routine,
-      name: newTitle
-    });
+    const updatedRoutine = { ...routine, name: newTitle };
+    onRoutineChange(updatedRoutine);
     setIsDirty(true);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsEditingTitle(false);
+    } else if (e.key === 'Escape') {
+      setIsEditingTitle(false);
+    }
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -205,7 +238,19 @@ const Routine: React.FC<RoutineProps> = ({
       <Section>
         <Header>
           <Flex justify="space-between" align="center">
-            <Title>{routine.name}</Title>
+            {isEditingTitle ? (
+              <TitleInput
+                value={routine.name}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={handleTitleKeyDown}
+                autoFocus
+              />
+            ) : (
+              <Title onClick={() => setIsEditingTitle(true)}>
+                {routine.name}
+              </Title>
+            )}
             <SaveButton
               hasChanges={isDirty}
               isSaving={isSaving}
@@ -223,6 +268,12 @@ const Routine: React.FC<RoutineProps> = ({
                   key={week.id}
                   week={week}
                   index={index}
+                  onWeekChange={(updatedWeek) => {
+                    const updatedRoutine = structuredClone(routine);
+                    updatedRoutine.weeks[index] = updatedWeek;
+                    onRoutineChange(updatedRoutine);
+                    setIsDirty(true);
+                  }}
                   onAddWorkout={() => onAddWorkout(week.id)}
                   onAddExercise={(workoutId) => onAddExercise(week.id, workoutId)}
                 />
